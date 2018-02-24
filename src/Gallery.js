@@ -212,6 +212,7 @@ class Gallery extends Component {
                         thumbnailStyle={this.props.thumbnailStyle}
                     />;
                 </Link>
+            )
             });
         var resizeIframeStyles = {
             height: 0,
