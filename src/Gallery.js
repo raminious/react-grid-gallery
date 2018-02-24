@@ -209,7 +209,7 @@ class Gallery extends Component {
                         tagStyle={this.props.tagStyle}
                         tileViewportStyle={this.props.tileViewportStyle}
                         thumbnailStyle={this.props.thumbnailStyle}
-                    />;
+                    />
                 </Link>
             )
             });
