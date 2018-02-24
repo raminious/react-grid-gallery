@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import Lightbox from 'react-images';
+import { Link } from 'react-router'
 import Image from './Image.js';
 
 class Gallery extends Component {
@@ -10,18 +10,15 @@ class Gallery extends Component {
         this.state = {
             images: this.props.images,
             thumbnails: [],
-            lightboxIsOpen: this.props.isOpen,
             currentImage: this.props.currentImage,
             containerWidth: 0
         };
 
         this.onResize = this.onResize.bind(this);
-        this.closeLightbox = this.closeLightbox.bind(this);
         this.gotoImage = this.gotoImage.bind(this);
         this.gotoNext = this.gotoNext.bind(this);
         this.gotoPrevious = this.gotoPrevious.bind(this);
         this.onClickImage = this.onClickImage.bind(this);
-        this.openLightbox = this.openLightbox.bind(this);
         this.onSelectImage = this.onSelectImage.bind(this);
     }
 
@@ -52,31 +49,6 @@ class Gallery extends Component {
         this.setState({
             containerWidth: Math.floor(this._gallery.clientWidth),
             thumbnails: this.renderThumbs(this._gallery.clientWidth)
-        });
-    }
-
-    openLightbox (index, event) {
-        if (event) {
-            event.preventDefault();
-        }
-        if (this.props.lightboxWillOpen) {
-            this.props.lightboxWillOpen.call(this, index);
-        }
-
-        this.setState({
-            currentImage: index,
-            lightboxIsOpen: true
-        });
-    }
-
-    closeLightbox () {
-        if (this.props.lightboxWillClose) {
-            this.props.lightboxWillClose.call(this);
-        }
-
-        this.setState({
-            currentImage: 0,
-            lightboxIsOpen: false
         });
     }
 
@@ -111,20 +83,8 @@ class Gallery extends Component {
     }
 
     getOnClickThumbnailFn () {
-        if(!this.props.onClickThumbnail && this.props.enableLightbox)
-            return this.openLightbox;
         if(this.props.onClickThumbnail)
             return this.props.onClickThumbnail;
-        return null;
-    }
-
-    getOnClickLightboxThumbnailFn () {
-        if(!this.props.onClickLightboxThumbnail
-           && this.props.showLightboxThumbnails)
-            return this.gotoImage;
-        if(this.props.onClickLightboxThumbnail
-           && this.props.showLightboxThumbnails)
-            return this.props.onClickLightboxThumbnail;
         return null;
     }
 
@@ -236,19 +196,23 @@ class Gallery extends Component {
 
     render () {
         var images = this.state.thumbnails.map((item, idx) => {
-            return <Image
-            key={"Image-"+idx+"-"+item.src}
-            item={item}
-            index={idx}
-            margin={this.props.margin}
-            height={this.props.rowHeight}
-            isSelectable={this.props.enableImageSelection}
-            onClick={this.getOnClickThumbnailFn()}
-            onSelectImage={this.onSelectImage}
-            tagStyle={this.props.tagStyle}
-            tileViewportStyle={this.props.tileViewportStyle}
-            thumbnailStyle={this.props.thumbnailStyle}
-                />;});
+            return (
+                <Link to={item.url}>
+                    <Image
+                        key={"Image-"+idx+"-"+item.src}
+                        item={item}
+                        index={idx}
+                        margin={this.props.margin}
+                        height={this.props.rowHeight}
+                        isSelectable={this.props.enableImageSelection}
+                        onClick={this.getOnClickThumbnailFn()}
+                        onSelectImage={this.onSelectImage}
+                        tagStyle={this.props.tagStyle}
+                        tileViewportStyle={this.props.tileViewportStyle}
+                        thumbnailStyle={this.props.thumbnailStyle}
+                    />;
+                </Link>
+            });
         var resizeIframeStyles = {
             height: 0,
             margin: 0,
@@ -263,25 +227,7 @@ class Gallery extends Component {
                 <div id={this.props.id} className="ReactGridGallery" ref={(c) => this._gallery = c}>
                     <iframe style={resizeIframeStyles} ref={(c) => c && c.contentWindow.addEventListener('resize', this.onResize) } />
                 {images}
-                <Lightbox
-            images={this.props.images}
-            backdropClosesModal={this.props.backdropClosesModal}
-            currentImage={this.state.currentImage}
-            customControls={this.props.customControls}
-            enableKeyboardInput={this.props.enableKeyboardInput}
-            imageCountSeparator={this.props.imageCountSeparator}
-            isOpen={this.state.lightboxIsOpen}
-            onClickImage={this.getOnClickImageFn()}
-            onClickNext={this.getOnClickNextFn()}
-            onClickPrev={this.getOnClickPrevFn()}
-            showCloseButton={this.props.showCloseButton}
-            showImageCount={this.props.showImageCount}
-            onClose={this.closeLightbox}
-            width={this.props.lightboxWidth}
-            theme={this.props.theme}
-            onClickThumbnail={this.getOnClickLightboxThumbnailFn()}
-            showThumbnails={this.props.showLightboxThumbnails}
-                />
+
                 </div>
         );
     }
@@ -318,9 +264,6 @@ Gallery.propTypes = {
     maxRows: PropTypes.number,
     margin: PropTypes.number,
     onClickThumbnail: PropTypes.func,
-    lightboxWillOpen: PropTypes.func,
-    lightboxWillClose: PropTypes.func,
-    enableLightbox: PropTypes.bool,
     backdropClosesModal: PropTypes.bool,
     currentImage: PropTypes.number,
     preloadNextImage: PropTypes.bool,
@@ -334,11 +277,8 @@ Gallery.propTypes = {
     onClose: PropTypes.func,
     showCloseButton: PropTypes.bool,
     showImageCount: PropTypes.bool,
-    lightboxWidth: PropTypes.number,
     tileViewportStyle: PropTypes.func,
     thumbnailStyle: PropTypes.func,
-    showLightboxThumbnails: PropTypes.bool,
-    onClickLightboxThumbnail: PropTypes.func,
     tagStyle: PropTypes.object
 };
 
@@ -347,7 +287,6 @@ Gallery.defaultProps = {
     enableImageSelection: true,
     rowHeight: 180,
     margin: 2,
-    enableLightbox: true,
     backdropClosesModal: false,
     currentImage: 0,
     preloadNextImage: true,
@@ -355,9 +294,7 @@ Gallery.defaultProps = {
     imageCountSeparator: ' of ',
     isOpen: false,
     showCloseButton: true,
-    showImageCount: true,
-    lightboxWidth: 1024,
-    showLightboxThumbnails: false
+    showImageCount: true
 };
 
 module.exports = Gallery;
